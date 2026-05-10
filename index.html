@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discotecas Valencia | Mapa Interactivo</title>
+    <meta name="description" content="Descubre las mejores discotecas de Valencia. Mapa interactivo con horarios, reseñas y programación.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Header Overlay -->
+        <header class="app-header glass-panel">
+            <h1 id="header-title">Valencia <span class="accent-text">Nightlife</span></h1>
+            <p id="header-subtitle">Descubre tu noche perfecta</p>
+        </header>
+
+        <!-- Controls (Search & Map Style) -->
+        <div class="controls-panel glass-panel">
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="search-input" placeholder="Buscar discoteca o género...">
+                </div>
+                <div id="search-results" class="search-results hidden"></div>
+            </div>
+            
+            <div class="map-style-toggle">
+                <button class="style-btn active" data-style="dark" aria-label="Modo oscuro" title="Oscuro">🌙</button>
+                <button class="style-btn" data-style="light" aria-label="Modo claro" title="Claro">☀️</button>
+                <button class="style-btn" data-style="satellite" aria-label="Modo satélite" title="Satélite">🛰️</button>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div id="map"></div>
+
+        <!-- Sidebar / Details Panel -->
+        <aside id="club-details" class="sidebar glass-panel hidden">
+            <button id="close-sidebar" class="close-btn" aria-label="Cerrar detalles">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div id="details-content" class="details-content">
+                <!-- Content will be injected via JS -->
+            </div>
+        </aside>
+
+        <!-- Floating Buttons -->
+        <button id="news-btn" class="glass-panel floating-btn" title="Novedades y Eventos">
+            <span class="news-icon">🔥</span>
+            <span id="news-btn-text" class="news-text">Novedades</span>
+        </button>
+
+        <button id="wizard-btn" class="glass-panel floating-btn wizard-btn" title="Gustavo - Tu Asistente">
+            <span class="wizard-icon">🐸</span>
+            <span id="wizard-btn-text" class="wizard-text">Gustavo</span>
+        </button>
+
+        <button id="settings-btn" class="glass-panel floating-btn settings-btn" title="Ajustes">
+            <span class="settings-icon">⚙️</span>
+            <span id="settings-btn-text" class="settings-text">Ajustes</span>
+        </button>
+
+        <!-- Panels -->
+        <div id="news-panel" class="glass-panel hidden">
+            <div class="panel-header">
+                <h3 id="news-panel-title">🔥 Próximos Eventos</h3>
+                <button id="close-news" class="close-btn">&times;</button>
+            </div>
+            <div id="events-list" class="scroll-area"></div>
+        </div>
+
+        <div id="wizard-panel" class="glass-panel hidden">
+            <div class="panel-header">
+                <h3>🐸 Gustavo</h3>
+                <button id="close-wizard" class="close-btn">&times;</button>
+            </div>
+            <div id="wizard-content" class="wizard-content">
+                <div class="wizard-step" data-step="1">
+                    <p class="wizard-question">¿Qué música te apetece hoy?</p>
+                    <div class="wizard-options">
+                        <button class="option-btn" data-value="Techno">Techno</button>
+                        <button class="option-btn" data-value="Comercial">Comercial</button>
+                        <button class="option-btn" data-value="Reggaeton">Reggaeton</button>
+                        <button class="option-btn" data-value="Indie">Indie</button>
+                    </div>
+                </div>
+                <div id="wizard-results" class="wizard-step hidden">
+                    <p class="wizard-question">Tus mejores opciones:</p>
+                    <div id="wizard-results-list" class="scroll-area results-list"></div>
+                    <button id="restart-wizard" class="glass-btn mt-3">Empezar de nuevo</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-panel" class="glass-panel hidden">
+            <div class="panel-header">
+                <h3 id="settings-panel-title">⚙️ Ajustes</h3>
+                <button id="close-settings" class="close-btn">&times;</button>
+            </div>
+            <div class="settings-content scroll-area">
+                <div class="setting-item">
+                    <label id="language-label" for="language-select">Idioma</label>
+                    <select id="language-select" class="glass-input">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="metro_data.js"></script>
+    <script src="events_data.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <!-- Google Maps API (Loaded after app.js to ensure initMap is defined) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsAOoHvuNMQYCGlFtn95xHvDaX3oY4vII&libraries=geometry&callback=initMap" async defer></script>
+</body>
+</html>
