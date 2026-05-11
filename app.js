@@ -212,7 +212,9 @@ function showClubDetails(club) {
             <h2 class="club-name">${club.name}</h2>
             <p class="club-meta">🎵 ${club.type}</p>
             <p class="club-address">📍 ${club.address}</p>
+            ${club.description ? `<p class="club-description" style="margin-top: 10px; font-size: 0.95rem; line-height: 1.5; color: #d1d5db;">${club.description}</p>` : ''}
         </div>
+
 
         <div class="section route-section">
             <button class="route-btn" id="calculate-route-btn">📍 ${t.routeTo}</button>
