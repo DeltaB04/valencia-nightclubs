@@ -166,6 +166,33 @@ No hace falta tocar código ni hacer deploy.
 
 ---
 
+## Desarrollo Local
+
+Para ejecutar la app localmente necesitas una Google Maps API Key propia:
+
+1. **Obtén una API Key** en [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. **Habilita las APIs**: Maps JavaScript API y Directions API
+3. **Configura restricciones** (opcional para local):
+   - En *Application restrictions* → **HTTP referrers**
+   - Añade: `http://localhost:*` y `http://127.0.0.1:*`
+4. **Crea tu config local**:
+   ```bash
+   # El archivo config.local.js ya existe en el repo (gitignored)
+   # Edítalo y pon tu API key:
+   window.MAPS_API_KEY = 'TU_API_KEY_AQUI';
+   ```
+5. **Lanza un servidor local**:
+   ```bash
+   npx serve .
+   # o: python -m http.server 8080
+   # o: php -S localhost:8080
+   ```
+6. Abre `http://localhost:3000` (o el puerto que use tu servidor)
+
+> ⚠️ **Nota**: `config.local.js` está en `.gitignore` — nunca se sube al repo.
+
+---
+
 ## Checklist final
 
 - [ ] App publicada en GitHub Pages
@@ -174,4 +201,5 @@ No hace falta tocar código ni hacer deploy.
 - [ ] `PROXY_URL` actualizado en `app.js`
 - [ ] Google Sheet creada y publicada como CSV
 - [ ] `SHEETS_CSV_URL` actualizado en `app.js`
+- [ ] Desarrollo local: `config.local.js` configurado con tu API key
 - [ ] Todo commiteado y pusheado → GitHub Actions despliega automáticamente 🎉

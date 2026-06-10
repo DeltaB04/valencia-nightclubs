@@ -123,7 +123,28 @@
     <script src="events_data.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
+    <!-- Local development config (gitignored) - loads custom API key if available -->
+    <script src="config.local.js"></script>
     <!-- Google Maps API (Loaded after app.js to ensure initMap is defined) -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=MAPS_API_KEY_PLACEHOLDER&libraries=geometry&callback=initMap" async defer></script>
+    <script>
+        // Determine API key: use local config if available, otherwise use placeholder (replaced in CI/CD)
+        const apiKey = (typeof window.MAPS_API_KEY !== 'undefined' && window.MAPS_API_KEY !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE')
+            ? window.MAPS_API_KEY
+            : 'MAPS_API_KEY_PLACEHOLDER';
+
+        // Dynamically inject Google Maps script with the appropriate API key
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=geometry&callback=initMap`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = () => {
+            console.error('Failed to load Google Maps API. Check your API key and network connection.');
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:white;padding:20px;text-align:center;"><h2>⚠️ Google Maps no disponible</h2><p>No se pudo cargar la API de Google Maps.</p><p style="font-size:0.9rem;opacity:0.7;">Para desarrollo local: crea <code>config.local.js</code> con tu API key (ver comentarios en el archivo).</p><p style="font-size:0.9rem;opacity:0.7;">En producción: la key se inyecta automáticamente via GitHub Actions.</p></div>';
+            }
+        };
+        document.body.appendChild(script);
+    </script>
 </body>
 </html>
