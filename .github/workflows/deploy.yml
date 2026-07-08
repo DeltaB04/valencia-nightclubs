@@ -24,6 +24,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate MAPS_API_KEY secret
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+        run: |
+          if [ -z "${MAPS_API_KEY}" ]; then
+            echo "❌ ERROR: El secret MAPS_API_KEY no está configurado en GitHub." >&2
+            echo "   Ve a Settings → Secrets and variables → Actions → New repository secret" >&2
+            echo "   Nombre: MAPS_API_KEY  ·  Valor: tu clave de Google Maps" >&2
+            exit 1
+          fi
+          echo "MAPS_API_KEY secret detectado ✅"
+
       - name: Inject API Key from secret
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}

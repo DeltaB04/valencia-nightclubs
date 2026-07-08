@@ -1,5 +1,14 @@
 # 🚀 Guía de Lanzamiento — Valencia Nightlife
 
+> ⚠️ **Antes de empezar (Paso 0)**: si no has añadido el secret `MAPS_API_KEY` en GitHub, la app se desplegará pero el mapa no se mostrará. Créalo primero:
+>
+> 1. Ve a tu repo → **Settings** → **Secrets and variables** → **Actions**
+> 2. **New repository secret**
+> 3. Name: `MAPS_API_KEY`  ·  Value: tu clave de Google Maps
+> 4. Guarda
+>
+> El workflow falla con un mensaje claro si este secret no existe. El propio `index.html` también muestra un error en pantalla con instrucciones si la clave falta.
+
 Sigue estos pasos **en orden**. Tardas menos de 30 minutos.
 
 ---

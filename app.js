@@ -46,6 +46,9 @@ function initMap() {
     }
 
     try {
+        if (typeof google === 'undefined' || !google.maps) {
+            throw new Error('google.maps is not available — the Maps API failed to load.');
+        }
         map = new google.maps.Map(mapElement, {
             center: valenciaCenter,
             zoom: 14,
@@ -54,8 +57,18 @@ function initMap() {
         });
         console.log("Google Map instance created successfully.");
         renderMarkers();
+        initMapControls();
     } catch (error) {
         console.error("Google Maps Initialization Failed:", error);
+        // Surface the failure in the UI (index.html may have already shown an error;
+        // this guards against silent failures where the API loads but Map() throws).
+        if (mapElement && !mapElement.querySelector('.map-error')) {
+            const err = document.createElement('div');
+            err.className = 'map-error';
+            err.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:#f8fafc;padding:20px;text-align:center;background:#0f172a;';
+            err.innerHTML = `<h2 style="margin:0 0 12px 0;font-family:'Outfit',sans-serif;">⚠️ No se pudo inicializar el mapa</h2><p style="margin:0 0 8px 0;max-width:520px;line-height:1.5;">${error.message || error}</p>`;
+            mapElement.appendChild(err);
+        }
     }
 }
 window.initMap = initMap;
@@ -675,22 +688,26 @@ function updateLanguage(lang) {
     }
 }
 
-// Map Controls Style Toggle
-document.querySelectorAll('.style-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-        const style = e.target.closest('.style-btn').dataset.style;
-        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-        e.target.closest('.style-btn').classList.add('active');
+// Map Controls Style Toggle — wired up only once the Map is ready, so it never
+// races with Google Maps loading and never throws if the user clicks too early.
+function initMapControls() {
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const style = e.target.closest('.style-btn').dataset.style;
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            e.target.closest('.style-btn').classList.add('active');
 
-        if (style === 'dark') {
-            map.setOptions({ styles: darkStyle, mapTypeId: 'roadmap' });
-        } else if (style === 'light') {
-            map.setOptions({ styles: lightStyle, mapTypeId: 'roadmap' });
-        } else if (style === 'satellite') {
-            map.setOptions({ styles: lightStyle, mapTypeId: 'satellite' });
-        }
+            if (!map) return;
+            if (style === 'dark') {
+                map.setOptions({ styles: darkStyle, mapTypeId: 'roadmap' });
+            } else if (style === 'light') {
+                map.setOptions({ styles: lightStyle, mapTypeId: 'roadmap' });
+            } else if (style === 'satellite') {
+                map.setOptions({ styles: lightStyle, mapTypeId: 'satellite' });
+            }
+        });
     });
-});
+}
 
 closeBtn.addEventListener('click', () => {
     sidebar.classList.add('hidden');

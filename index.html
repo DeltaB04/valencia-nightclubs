@@ -119,32 +119,83 @@
     </div>
 
     
+    <noscript>
+        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#f8fafc;font-family:sans-serif;padding:20px;text-align:center;z-index:9999;">
+            <div>
+                <h1>JavaScript desactivado</h1>
+                <p>Esta aplicación necesita JavaScript habilitado para funcionar.</p>
+            </div>
+        </div>
+    </noscript>
+
+    <!-- 1. Default API key (overridden by config.local.js locally or by GitHub Actions in CI).
+            The string MAPS_API_KEY_PLACEHOLDER is replaced by sed in the deploy workflow. -->
+    <script>
+        window.MAPS_API_KEY = 'MAPS_API_KEY_PLACEHOLDER';
+    </script>
+
+    <!-- 2. Local development config (gitignored). If present, it overrides the placeholder above.
+            A 404 in production is harmless — the key just stays as the placeholder, and the
+            MAPS_API_KEY secret will be injected by the deploy workflow instead. -->
+    <script src="config.local.js"></script>
+
+    <!-- 3. Static data files (must be loaded before app.js which references them) -->
     <script src="metro_data.js"></script>
     <script src="events_data.js"></script>
     <script src="data.js"></script>
-    <script src="app.js"></script>
-    <!-- Local development config (gitignored) - loads custom API key if available -->
-    <script src="config.local.js"></script>
-    <!-- Google Maps API (Loaded after app.js to ensure initMap is defined) -->
-    <script>
-        // Determine API key: use local config if available, otherwise use placeholder (replaced in CI/CD)
-        const apiKey = (typeof window.MAPS_API_KEY !== 'undefined' && window.MAPS_API_KEY !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE')
-            ? window.MAPS_API_KEY
-            : 'MAPS_API_KEY_PLACEHOLDER';
 
-        // Dynamically inject Google Maps script with the appropriate API key
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=geometry&callback=initMap`;
-        script.async = true;
-        script.defer = true;
-        script.onerror = () => {
-            console.error('Failed to load Google Maps API. Check your API key and network connection.');
-            const mapEl = document.getElementById('map');
-            if (mapEl) {
-                mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:white;padding:20px;text-align:center;"><h2>⚠️ Google Maps no disponible</h2><p>No se pudo cargar la API de Google Maps.</p><p style="font-size:0.9rem;opacity:0.7;">Para desarrollo local: crea <code>config.local.js</code> con tu API key (ver comentarios en el archivo).</p><p style="font-size:0.9rem;opacity:0.7;">En producción: la key se inyecta automáticamente via GitHub Actions.</p></div>';
+    <!-- 4. App logic (defines window.initMap used by Google Maps callback) -->
+    <script src="app.js"></script>
+
+    <!-- 5. Google Maps API — loaded last so initMap is defined.
+            Synchronous (no async/defer) guarantees initMap is registered before this script executes.
+            A synchronous <script> tag with &callback= also means we get a clean error path via onerror. -->
+    <script>
+        (function loadGoogleMaps() {
+            const key = (typeof window.MAPS_API_KEY === 'string' && window.MAPS_API_KEY.length > 0)
+                ? window.MAPS_API_KEY
+                : 'MAPS_API_KEY_PLACEHOLDER';
+
+            const showMapError = (title, message) => {
+                console.error(title, '—', message);
+                const mapEl = document.getElementById('map');
+                if (mapEl && !mapEl.querySelector('.map-error')) {
+                    const err = document.createElement('div');
+                    err.className = 'map-error';
+                    err.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:#f8fafc;padding:20px;text-align:center;background:#0f172a;';
+                    err.innerHTML = `<h2 style="margin:0 0 12px 0;font-family:'Outfit',sans-serif;">${title}</h2><p style="margin:0 0 8px 0;max-width:520px;line-height:1.5;">${message}</p><p style="font-size:0.85rem;opacity:0.7;margin-top:16px;">Abre la consola del navegador (F12) para más detalles.</p>`;
+                    mapEl.appendChild(err);
+                }
+            };
+
+            if (key === 'MAPS_API_KEY_PLACEHOLDER' || key === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+                showMapError(
+                    '🔑 Falta la API key de Google Maps',
+                    'La clave no está configurada. En local: crea <code>config.local.js</code> con tu key. En producción: añade el secret <code>MAPS_API_KEY</code> en GitHub → Settings → Secrets and variables → Actions.'
+                );
+                return;
             }
-        };
-        document.body.appendChild(script);
+
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geometry&callback=initMap`;
+            script.onerror = () => {
+                showMapError(
+                    '⚠️ Google Maps no disponible',
+                    'No se pudo cargar la API de Google Maps. Comprueba tu conexión a internet y que la API key tenga <strong>Maps JavaScript API</strong> y <strong>Directions API</strong> habilitadas en Google Cloud Console, y que tu dominio esté permitido en las restricciones HTTP referrers.'
+                );
+            };
+            document.body.appendChild(script);
+
+            // Surface authentication failures emitted via global errors
+            // (e.g. InvalidKeyMapError, ApiNotActivatedMapError, RefererNotAllowedMapError)
+            // so the user sees something instead of a silent blank map.
+            window.addEventListener('error', (e) => {
+                const msg = (e && e.message) || '';
+                if (/Google Maps|InvalidKey|ApiNotActivatedMap|RefererNotAllowedMapError/i.test(msg)) {
+                    showMapError('⚠️ Google Maps rechazó la clave', msg);
+                }
+            });
+        })();
     </script>
 </body>
 </html>
